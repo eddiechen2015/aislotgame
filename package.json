@@ -1,0 +1,32 @@
+{
+  "name": "asian-tour-slot",
+  "version": "0.1.0",
+  "description": "Asian Tour - 243-ways cascading slot (ASIAN-TOUR-01)",
+  "main": "dist/server/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/server/index.js",
+    "dev": "ts-node src/server/index.ts",
+    "sim": "ts-node src/simulator/rtp.ts",
+    "sim:search": "ts-node src/simulator/searchRtp.ts",
+    "sim:verify": "ts-node src/simulator/verifyProfile.ts",
+    "sim:verify-batch": "ts-node src/simulator/verifyProfileBatch.ts",
+    "sim:promote-profile": "ts-node src/simulator/promoteProfile.ts",
+    "sim:export-profile": "ts-node src/simulator/exportDefaultProfile.ts",
+    "sim:build": "node dist/simulator/rtp.js",
+    "audit:verify": "ts-node src/simulator/auditVerify.ts",
+    "test:unit": "ts-node src/tests/run.ts",
+    "test:spin": "ts-node src/simulator/spinTest.ts"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.11.30",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.4.5"
+  }
+}

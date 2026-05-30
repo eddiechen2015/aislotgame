@@ -1,0 +1,119 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Asian Tour - Game</title>
+  <link rel="stylesheet" href="/game.css" />
+</head>
+<body>
+  <div class="game-shell">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">ASIAN-TOUR-01</div>
+        <h1>Asian Tour</h1>
+      </div>
+      <div class="topbar-meta">
+        <span id="marketBadge">Market: -</span>
+        <span id="profileBadge">Profile: loading</span>
+        <span id="phaseBadge">Boot</span>
+      </div>
+    </header>
+
+    <main class="game-layout">
+      <section class="stage-card">
+        <div class="stage-sky">
+          <div class="sun-disc"></div>
+          <div class="mountain mountain-a"></div>
+          <div class="mountain mountain-b"></div>
+          <div class="mist mist-a"></div>
+          <div class="mist mist-b"></div>
+        </div>
+
+        <div class="feature-strip" id="featureStrip">
+          <span id="roundId">Round: -</span>
+          <span id="featureStatus">Base game ready</span>
+          <span id="freeSpinStatus">Free spins: -</span>
+        </div>
+
+        <div class="reels-frame" id="reelsFrame" aria-label="Slot reels">
+          <div class="reels" id="reels"></div>
+          <svg class="ways-layer" id="waysLayer" aria-hidden="true"></svg>
+          <div class="reel-shine"></div>
+        </div>
+
+        <div class="win-banner" id="winBanner">
+          <span class="win-label">Round Win</span>
+          <strong id="displayedWin">0.00</strong>
+        </div>
+      </section>
+
+      <aside class="control-card">
+        <div class="wallet-row">
+          <div>
+            <span>Balance</span>
+            <strong id="balanceValue">-</strong>
+          </div>
+          <div>
+            <span>Last Win</span>
+            <strong id="lastWinValue">0.00</strong>
+          </div>
+        </div>
+
+        <label class="field">
+          <span>Player</span>
+          <input id="usernameInput" value="tester" autocomplete="off" />
+        </label>
+
+        <label class="field">
+          <span>Market</span>
+          <select id="marketSelect"></select>
+        </label>
+
+        <label class="field">
+          <span>Bet</span>
+          <select id="betSelect"></select>
+        </label>
+
+        <div class="button-row">
+          <button id="loginButton" class="secondary-button">Login</button>
+          <button id="spinButton" class="spin-button" disabled>Spin</button>
+        </div>
+
+        <div class="mini-actions">
+          <button id="muteButton" class="ghost-button">Sound Off</button>
+          <a href="/" class="ghost-link">Test harness</a>
+        </div>
+
+        <div class="pay-info">
+          <h2>Session</h2>
+          <p id="sessionText">Load config and login to start.</p>
+          <p id="paytableText">Paytable loading...</p>
+        </div>
+      </aside>
+    </main>
+  </div>
+
+  <div id="loginOverlay" class="overlay visible">
+    <div class="overlay-card">
+      <span class="overlay-kicker">Asian Tour</span>
+      <h2>Enter the game</h2>
+      <p>Local demo mode uses the existing server session API. Math, RNG, settlement, and wallet updates remain server-authoritative.</p>
+      <button id="overlayLoginButton" class="spin-button">Login as tester</button>
+    </div>
+  </div>
+
+  <div id="celebrationOverlay" class="overlay">
+    <div class="overlay-card celebration-card">
+      <span id="celebrationKicker" class="overlay-kicker">Win</span>
+      <h2 id="celebrationTitle">Big Win</h2>
+      <p id="celebrationAmount">0.00</p>
+      <button id="celebrationClose" class="secondary-button">Continue</button>
+    </div>
+  </div>
+
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+  <script src="/game.js"></script>
+</body>
+</html>
