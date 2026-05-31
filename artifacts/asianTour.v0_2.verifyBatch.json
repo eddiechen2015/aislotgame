@@ -1,0 +1,233 @@
+{
+  "generatedAt": "2026-05-31T02:01:12.483Z",
+  "profile": {
+    "schemaVersion": 1,
+    "profileId": "asian-tour-tuned",
+    "profileVersion": "0.2.0",
+    "gameCode": "ASIAN-TOUR-01",
+    "gameVersion": "0.1.0",
+    "status": "candidate",
+    "source": "file:/home/ubuntu/chenrui/slotgame/aislotgame/artifacts/asianTour.v0_2.candidate.mathProfile.json",
+    "createdAt": "2026-05-31T02:00:16.246Z",
+    "updatedAt": "2026-05-31T02:00:16.246Z",
+    "targets": {
+      "rtp": {
+        "target": 0.962,
+        "tolerance": 0.015
+      },
+      "baseRtp": {
+        "target": 0.58,
+        "tolerance": 0.015
+      },
+      "fsRtp": {
+        "target": 0.382,
+        "tolerance": 0.02
+      },
+      "hitFreq": {
+        "target": 0.3,
+        "tolerance": 0.025
+      },
+      "fsFreq": {
+        "target": 0.007692307692307693,
+        "tolerance": 0.0015
+      },
+      "stdDevX": {
+        "target": 22,
+        "tolerance": 10
+      },
+      "maxWinX": {
+        "max": 30000
+      }
+    },
+    "notes": [
+      "Scope-B retune: RTP 91.4%->96.2%, base/FS split corrected to 58/38, hit freq 48.6%->30.9%.",
+      "tuner params: {\"baseLowScale\":6.74,\"basePremScale\":6.74,\"fsLowScale\":7.7,\"fsPremScale\":7.7,\"scatterScale\":1,\"baseScatterDelta\":-2,\"baseWildDelta\":0,\"basePremDelta\":0,\"fsScatterDelta\":0,\"fsWildDelta\":2,\"fsPremDelta\":4,\"blanks\":[\"J\",\"10\",\"Q\"]}"
+    ]
+  },
+  "inputs": {
+    "profilePath": "artifacts/asianTour.v0_2.candidate.mathProfile.json",
+    "spinsPerSeed": 4000000,
+    "seeds": [
+      42,
+      99,
+      123,
+      777,
+      2026
+    ],
+    "market": "MGA",
+    "workerCount": 3
+  },
+  "targets": {
+    "rtp": {
+      "target": 0.962,
+      "tolerance": 0.015
+    },
+    "baseRtp": {
+      "target": 0.58,
+      "tolerance": 0.015
+    },
+    "fsRtp": {
+      "target": 0.382,
+      "tolerance": 0.02
+    },
+    "hitFreq": {
+      "target": 0.3,
+      "tolerance": 0.025
+    },
+    "fsFreq": {
+      "target": 0.007692307692307693,
+      "tolerance": 0.0015
+    },
+    "stdDevX": {
+      "target": 22,
+      "tolerance": 10
+    },
+    "maxWinX": {
+      "max": 30000
+    }
+  },
+  "aggregate": {
+    "rtp": 0.964546353999302,
+    "baseRtp": 0.5771161160009949,
+    "fsRtp": 0.38743023799999443,
+    "hitFreq": 0.30879884999999996,
+    "fsFreq": 0.0085358,
+    "stdDevX": 22.383786270810518,
+    "maxWinX": 11077.2
+  },
+  "confidence": {
+    "metricCount": 5,
+    "perMetric": {
+      "rtp": {
+        "mean": 0.964546353999302,
+        "sampleStdDev": 0.01107419505959036,
+        "standardError": 0.004952530589867276,
+        "ci95Low": 0.9548393940431621,
+        "ci95High": 0.9742533139554419,
+        "target": 0.962,
+        "tolerance": 0.015,
+        "normalizedError": 0.16975693328680208,
+        "toleranceCoveredByCi95": true
+      },
+      "baseRtp": {
+        "mean": 0.5771161160009949,
+        "sampleStdDev": 0.0025619795492970144,
+        "standardError": 0.0011457520858384794,
+        "ci95Low": 0.5748704419127515,
+        "ci95High": 0.5793617900892383,
+        "target": 0.58,
+        "tolerance": 0.015,
+        "normalizedError": 0.19225893326700513,
+        "toleranceCoveredByCi95": true
+      },
+      "fsRtp": {
+        "mean": 0.38743023799999443,
+        "sampleStdDev": 0.011247308488492144,
+        "standardError": 0.0050299492688357685,
+        "ci95Low": 0.3775715374330763,
+        "ci95High": 0.39728893856691255,
+        "target": 0.382,
+        "tolerance": 0.02,
+        "normalizedError": 0.27151189999972125,
+        "toleranceCoveredByCi95": true
+      },
+      "hitFreq": {
+        "mean": 0.30879884999999996,
+        "sampleStdDev": 0.000206485517046599,
+        "standardError": 0.00009234313049707738,
+        "ci95Low": 0.3086178574642257,
+        "ci95High": 0.3089798425357742,
+        "target": 0.3,
+        "tolerance": 0.025,
+        "normalizedError": 0.35195399999999877,
+        "toleranceCoveredByCi95": true
+      },
+      "fsFreq": {
+        "mean": 0.0085358,
+        "sampleStdDev": 0.00002881536048707322,
+        "standardError": 0.000012886620969051434,
+        "ci95Low": 0.00851054222290066,
+        "ci95High": 0.00856105777709934,
+        "target": 0.007692307692307693,
+        "tolerance": 0.0015,
+        "normalizedError": 0.5623282051282046,
+        "toleranceCoveredByCi95": true
+      },
+      "stdDevX": {
+        "mean": 22.383786270810518,
+        "sampleStdDev": 1.3521850903895785,
+        "standardError": 0.604715556054559,
+        "ci95Low": 21.19854378094358,
+        "ci95High": 23.569028760677455,
+        "target": 22,
+        "tolerance": 10,
+        "normalizedError": 0.038378627081051775,
+        "toleranceCoveredByCi95": true
+      }
+    }
+  },
+  "failures": [],
+  "passed": true,
+  "perSeed": [
+    {
+      "spins": 4000000,
+      "market": "MGA",
+      "seed": 42,
+      "rtp": 0.959733754999385,
+      "baseRtp": 0.5798528875009993,
+      "fsRtp": 0.3798808674999944,
+      "hitFreq": 0.308804,
+      "fsFreq": 0.008533,
+      "maxWinX": 10047.99,
+      "stdDevX": 20.99323054178231
+    },
+    {
+      "spins": 4000000,
+      "market": "MGA",
+      "seed": 99,
+      "rtp": 0.9786182524992758,
+      "baseRtp": 0.5779784000009492,
+      "fsRtp": 0.40063985249999384,
+      "hitFreq": 0.30855625,
+      "fsFreq": 0.008567,
+      "maxWinX": 10509.48,
+      "stdDevX": 23.02293069326469
+    },
+    {
+      "spins": 4000000,
+      "market": "MGA",
+      "seed": 123,
+      "rtp": 0.9741096174992425,
+      "baseRtp": 0.5755004925010104,
+      "fsRtp": 0.3986091249999952,
+      "hitFreq": 0.30890325,
+      "fsFreq": 0.0085405,
+      "maxWinX": 10422.6,
+      "stdDevX": 24.413614016430344
+    },
+    {
+      "spins": 4000000,
+      "market": "MGA",
+      "seed": 777,
+      "rtp": 0.9557560799993071,
+      "baseRtp": 0.5787171075010246,
+      "fsRtp": 0.3770389724999948,
+      "hitFreq": 0.30907975,
+      "fsFreq": 0.008549,
+      "maxWinX": 11077.2,
+      "stdDevX": 21.614017196318155
+    },
+    {
+      "spins": 4000000,
+      "market": "MGA",
+      "seed": 2026,
+      "rtp": 0.9545140649992994,
+      "baseRtp": 0.5735316925009908,
+      "fsRtp": 0.380982372499994,
+      "hitFreq": 0.308651,
+      "fsFreq": 0.0084895,
+      "maxWinX": 10028.81,
+      "stdDevX": 21.87513890625709
+    }
+  ]
+}

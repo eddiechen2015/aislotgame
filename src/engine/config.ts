@@ -45,55 +45,74 @@ export const WILD = {
   multiplierValues: [2, 3, 5] as const,
 };
 
-/** Symbol catalogue with paytable (multipliers of bet). */
+/**
+ * Symbol catalogue with paytable (multipliers of bet).
+ *
+ * Paytable is the v0.2.0 retune (line pays scaled ~6.74x over the original
+ * base values) that lands total RTP at 96.2% with a 58/38 base/FS split and a
+ * ~30% hit frequency. See artifacts/approved.mathProfile.json + ARCHITECTURE.md.
+ * NOTE: Q / J / 10 are deliberately NOT in PAYABLE_SYMBOLS (pseudo-blanks); the
+ * pays kept here are unused at runtime and retained only for documentation.
+ */
 export const SYMBOLS: Record<SymbolId, SymbolDef> = {
-  A:       { id: "A",       kind: "low",     pays: { 3: 2.828703,   4: 5.657407,   5: 28.287034   } },
-  K:       { id: "K",       kind: "low",     pays: { 3: 3.394444,   4: 8.48611,    5: 33.94444    } },
-  Q:       { id: "Q",       kind: "low",     pays: { 3: 4.525925,   4: 11.314813,  5: 45.259253   } },
-  J:       { id: "J",       kind: "low",     pays: { 3: 5.657407,   4: 16.97222,   5: 56.574066   } },
-  "10":    { id: "10",      kind: "low",     pays: { 3: 8.48611,    4: 22.629627,  5: 84.8611     } },
-  NINJA:   { id: "NINJA",   kind: "premium", pays: { 3: 28.395661,  4: 85.186983,  5: 283.956611  } },
-  DRAGON:  { id: "DRAGON",  kind: "premium", pays: { 3: 45.433058,  4: 141.978306, 5: 454.330579  } },
-  PHOENIX: { id: "PHOENIX", kind: "premium", pays: { 3: 68.149587,  4: 227.165289, 5: 681.495868  } },
-  SHOGUN:  { id: "SHOGUN",  kind: "premium", pays: { 3: 113.582645, 4: 454.330579, 5: 1419.783059 } },
+  A:       { id: "A",       kind: "low",     pays: { 3: 19.065458,  4: 38.130923,   5: 190.654609  } },
+  K:       { id: "K",       kind: "low",     pays: { 3: 22.878553,  4: 57.196381,   5: 228.785526  } },
+  Q:       { id: "Q",       kind: "low",     pays: { 3: 30.504735,  4: 76.26184,    5: 305.047365  } },
+  J:       { id: "J",       kind: "low",     pays: { 3: 38.130923,  4: 114.392763,  5: 381.309205  } },
+  "10":    { id: "10",      kind: "low",     pays: { 3: 57.196381,  4: 152.523686,  5: 571.963814  } },
+  NINJA:   { id: "NINJA",   kind: "premium", pays: { 3: 191.386755, 4: 574.160265,  5: 1913.867558 } },
+  DRAGON:  { id: "DRAGON",  kind: "premium", pays: { 3: 306.218811, 4: 956.933782,  5: 3062.188102 } },
+  PHOENIX: { id: "PHOENIX", kind: "premium", pays: { 3: 459.328216, 4: 1531.094048, 5: 4593.28215  } },
+  SHOGUN:  { id: "SHOGUN",  kind: "premium", pays: { 3: 765.547027, 4: 3062.188102, 5: 9569.337818 } },
   WILD:    { id: "WILD",    kind: "wild" },
   SCATTER: { id: "SCATTER", kind: "scatter" },
 };
 
-/** Dedicated free-spin paytable. Kept explicit even when matching base game. */
+/**
+ * Dedicated free-spin paytable (v0.2.0 retune: ~7.7x over original FS values).
+ * Free spins carry 38.2% RTP — the volatility engine, amplified by the per-spin
+ * multiplier ladder. Q / J / 10 are pseudo-blanks (see PAYABLE_SYMBOLS).
+ */
 export const FREE_SPIN_SYMBOLS: Record<SymbolId, SymbolDef> = {
-  A:       { id: "A",       kind: "low",     pays: { 3: 2.828703,   4: 5.657407,   5: 28.287034   } },
-  K:       { id: "K",       kind: "low",     pays: { 3: 3.394444,   4: 8.48611,    5: 33.94444    } },
-  Q:       { id: "Q",       kind: "low",     pays: { 3: 4.525925,   4: 11.314813,  5: 45.259253   } },
-  J:       { id: "J",       kind: "low",     pays: { 3: 5.657407,   4: 16.97222,   5: 56.574066   } },
-  "10":    { id: "10",      kind: "low",     pays: { 3: 8.48611,    4: 22.629627,  5: 84.8611     } },
-  NINJA:   { id: "NINJA",   kind: "premium", pays: { 3: 28.395661,  4: 85.186983,  5: 283.956611  } },
-  DRAGON:  { id: "DRAGON",  kind: "premium", pays: { 3: 45.433058,  4: 141.978306, 5: 454.330579  } },
-  PHOENIX: { id: "PHOENIX", kind: "premium", pays: { 3: 68.149587,  4: 227.165289, 5: 681.495868  } },
-  SHOGUN:  { id: "SHOGUN",  kind: "premium", pays: { 3: 113.582645, 4: 454.330579, 5: 1419.783059 } },
+  A:       { id: "A",       kind: "low",     pays: { 3: 21.781013,  4: 43.562034,   5: 217.810162   } },
+  K:       { id: "K",       kind: "low",     pays: { 3: 26.137219,  4: 65.343047,   5: 261.372188   } },
+  Q:       { id: "Q",       kind: "low",     pays: { 3: 34.849623,  4: 87.12406,    5: 348.496248   } },
+  J:       { id: "J",       kind: "low",     pays: { 3: 43.562034,  4: 130.686094,  5: 435.620308   } },
+  "10":    { id: "10",      kind: "low",     pays: { 3: 65.343047,  4: 174.248128,  5: 653.43047    } },
+  NINJA:   { id: "NINJA",   kind: "premium", pays: { 3: 218.64659,  4: 655.939769,  5: 2186.465905  } },
+  DRAGON:  { id: "DRAGON",  kind: "premium", pays: { 3: 349.834547, 4: 1093.232956, 5: 3498.345458  } },
+  PHOENIX: { id: "PHOENIX", kind: "premium", pays: { 3: 524.75182,  4: 1749.172725, 5: 5247.518184  } },
+  SHOGUN:  { id: "SHOGUN",  kind: "premium", pays: { 3: 874.586367, 4: 3498.345458, 5: 10932.329554 } },
   WILD:    { id: "WILD",    kind: "wild" },
   SCATTER: { id: "SCATTER", kind: "scatter" },
 };
 
-/** Per-reel strip symbol counts from math.md Section 8. */
+/**
+ * Per-reel strip symbol counts (v0.2.0 retune; reel totals 300/306/298/306/300).
+ * Scatter density lowered vs the original (free-spin frequency ~1 in 117) while
+ * per-reel totals are preserved. Q / J / 10 still occupy the reels but no longer
+ * pay (pseudo-blanks) which pulls hit frequency down to ~30%.
+ */
 export const REEL_SYMBOL_COUNTS: Array<Record<SymbolId, number>> = [
-  // Reel 1 — total 294
-  { A: 60, K: 55, Q: 50, J: 45, "10": 40, NINJA: 16, DRAGON: 11, PHOENIX: 7, SHOGUN: 4, WILD: 1, SCATTER: 11 },
-  // Reel 2 — total 305
-  { A: 60, K: 55, Q: 50, J: 45, "10": 40, NINJA: 19, DRAGON: 13, PHOENIX: 9, SHOGUN: 5, WILD: 2, SCATTER: 8 },
-  // Reel 3 — total 293
-  { A: 55, K: 50, Q: 45, J: 40, "10": 35, NINJA: 21, DRAGON: 16, PHOENIX: 11, SHOGUN: 6, WILD: 3, SCATTER: 16 },
-  // Reel 4 — total 305
-  { A: 60, K: 55, Q: 50, J: 45, "10": 40, NINJA: 19, DRAGON: 13, PHOENIX: 9, SHOGUN: 5, WILD: 2, SCATTER: 8 },
-  // Reel 5 — total 294
-  { A: 60, K: 55, Q: 50, J: 45, "10": 40, NINJA: 16, DRAGON: 11, PHOENIX: 7, SHOGUN: 4, WILD: 1, SCATTER: 11 },
+  { A: 61, K: 56, Q: 50, J: 45, "10": 40, NINJA: 16, DRAGON: 11, PHOENIX: 7, SHOGUN: 4, WILD: 1, SCATTER: 9 },
+  { A: 61, K: 56, Q: 50, J: 45, "10": 40, NINJA: 19, DRAGON: 13, PHOENIX: 9, SHOGUN: 5, WILD: 2, SCATTER: 6 },
+  { A: 56, K: 51, Q: 45, J: 40, "10": 35, NINJA: 21, DRAGON: 16, PHOENIX: 11, SHOGUN: 6, WILD: 3, SCATTER: 14 },
+  { A: 61, K: 56, Q: 50, J: 45, "10": 40, NINJA: 19, DRAGON: 13, PHOENIX: 9, SHOGUN: 5, WILD: 2, SCATTER: 6 },
+  { A: 61, K: 56, Q: 50, J: 45, "10": 40, NINJA: 16, DRAGON: 11, PHOENIX: 7, SHOGUN: 4, WILD: 1, SCATTER: 9 },
 ];
 
 /**
- * Free-spin reel symbol counts. Starts identical to base game and can diverge
- * when math tuning needs a dedicated feature reel set.
+ * Free-spin reel symbol counts (v0.2.0 retune). A dedicated, premium- and
+ * wild-richer reel set than the base game (NINJA..SHOGUN +4, WILD +2 per reel,
+ * rebalanced out of the low symbols) so free spins deliver their 38.2% RTP.
  */
-export const FREE_SPIN_REEL_SYMBOL_COUNTS: Array<Record<SymbolId, number>> = REEL_SYMBOL_COUNTS.map((counts) => ({ ...counts }));
+export const FREE_SPIN_REEL_SYMBOL_COUNTS: Array<Record<SymbolId, number>> = [
+  { A: 49, K: 49, Q: 49, J: 45, "10": 40, NINJA: 20, DRAGON: 15, PHOENIX: 11, SHOGUN: 8, WILD: 3, SCATTER: 11 },
+  { A: 49, K: 49, Q: 49, J: 45, "10": 40, NINJA: 23, DRAGON: 17, PHOENIX: 13, SHOGUN: 9, WILD: 4, SCATTER: 8 },
+  { A: 44, K: 44, Q: 44, J: 40, "10": 35, NINJA: 25, DRAGON: 20, PHOENIX: 15, SHOGUN: 10, WILD: 5, SCATTER: 16 },
+  { A: 49, K: 49, Q: 49, J: 45, "10": 40, NINJA: 23, DRAGON: 17, PHOENIX: 13, SHOGUN: 9, WILD: 4, SCATTER: 8 },
+  { A: 49, K: 49, Q: 49, J: 45, "10": 40, NINJA: 20, DRAGON: 15, PHOENIX: 11, SHOGUN: 8, WILD: 3, SCATTER: 11 },
+];
 
 export const REEL_STRIP_ORDERS: SymbolId[][] = [
   ["A", "10", "K", "NINJA", "Q", "J", "DRAGON", "A", "SCATTER", "K", "PHOENIX", "Q", "WILD", "J", "SHOGUN"],
@@ -112,5 +131,13 @@ export const REEL_WEIGHTS = REEL_SYMBOL_COUNTS;
 export const PREMIUM_SYMBOLS: SymbolId[] = ["NINJA", "DRAGON", "PHOENIX", "SHOGUN"];
 export const LOW_SYMBOLS: SymbolId[] = ["A", "K", "Q", "J", "10"];
 
-/** Symbols a wild can substitute for (everything except SCATTER and WILD itself). */
-export const PAYABLE_SYMBOLS: SymbolId[] = [...LOW_SYMBOLS, ...PREMIUM_SYMBOLS];
+/**
+ * Symbols evaluated for line wins (and that a wild substitutes for).
+ *
+ * v0.2.0 retune: Q / J / 10 are intentionally EXCLUDED. They still appear on the
+ * reels but never form or extend a winning way — acting as pseudo-blanks that
+ * break left-to-right chains. This is the lever that lowers hit frequency from
+ * ~48% to ~30% without an engine-level blank symbol. For a player-facing build,
+ * replacing them with a dedicated BLANK art symbol is the cleaner long-term fix.
+ */
+export const PAYABLE_SYMBOLS: SymbolId[] = ["A", "K", ...PREMIUM_SYMBOLS];
