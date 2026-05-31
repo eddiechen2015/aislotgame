@@ -29,7 +29,7 @@ import { buildConfigResponse } from "./configResponse";
 import { buildSpinResponse, settleSpinResultDetailed } from "./spinResponse";
 import { amountToCents, centsToAmount, parseAmountToCents } from "./money";
 import { createRoundId } from "./roundId";
-import { adjustBalanceCents, createSession, getBalance, getSession, Session } from "./session";
+import { acquireSpinLock, adjustBalanceCents, createSession, getBalance, getSession, releaseSpinLock, Session } from "./session";
 
 const loadedProfile = loadMathProfileFromEnv();
 
@@ -50,6 +50,7 @@ function authMiddleware(req: AuthedRequest, res: Response, next: NextFunction) {
   const token = m?.[1];
   const session = getSession(token);
   if (!session) {
+    console.warn(`[auth-fail] ${req.method} ${req.path} ip=${req.ip}`);
     res.status(401).json({ error: "unauthorized" });
     return;
   }
@@ -61,11 +62,13 @@ app.get("/api/config", (_req, res) => {
   res.json(buildConfigResponse());
 });
 
+const MAX_USERNAME_LENGTH = 100;
+
 app.post("/api/login", (req, res) => {
   const { username } = req.body ?? {};
   const market = parseMarket(req.body?.market) ?? DEFAULT_MARKET;
-  if (typeof username !== "string" || username.trim().length === 0) {
-    res.status(400).json({ error: "username required" });
+  if (typeof username !== "string" || username.trim().length === 0 || username.length > MAX_USERNAME_LENGTH) {
+    res.status(400).json({ error: "username required (max 100 characters)" });
     return;
   }
   // Demo-only: no password check. Any username creates a fresh session.
@@ -85,64 +88,83 @@ app.get("/api/me", authMiddleware, (req: AuthedRequest, res) => {
 
 app.post("/api/spin", authMiddleware, (req: AuthedRequest, res) => {
   const s = req.session!;
-  const betCents = parseAmountToCents(req.body?.bet);
-  if (betCents === null) {
-    res.status(400).json({ error: "bet must be a number with up to 2 decimals" });
-    return;
-  }
-  const bet = centsToAmount(betCents);
-  if (bet < BET.min || bet > BET.max) {
-    res.status(400).json({ error: `bet out of range [${BET.min}, ${BET.max}]` });
-    return;
-  }
-  if (betCents < amountToCents(BET.min) || betCents > amountToCents(BET.max)) {
-    res.status(400).json({ error: `bet must align to 2-decimal currency precision` });
-    return;
-  }
-  if (s.balanceCents < betCents) {
-    res.status(400).json({ error: "insufficient balance" });
+
+  // Prevent concurrent spin requests on the same session.
+  if (!acquireSpinLock(s)) {
+    res.status(429).json({ error: "spin already in progress" });
     return;
   }
 
-  // Debit the settled bet, then play, then credit the settled round win.
-  const roundId = createRoundId();
-  const balanceBeforeCents = s.balanceCents;
-  adjustBalanceCents(s, -betCents);
-  const balanceAfterDebitCents = s.balanceCents;
-  const auditedRng = createAuditedRng();
-  const result = playRound(bet, auditedRng.rng);
-  const settled = settleSpinResultDetailed(result, s.market);
-  for (const event of settled.auditEvents) {
-    logAbsoluteCapAudit(event, {
+  try {
+    const betCents = parseAmountToCents(req.body?.bet);
+    if (betCents === null) {
+      res.status(400).json({ error: "bet must be a number with up to 2 decimals" });
+      return;
+    }
+    const minCents = amountToCents(BET.min);
+    const maxCents = amountToCents(BET.max);
+    if (betCents < minCents || betCents > maxCents) {
+      res.status(400).json({ error: `bet out of range [${BET.min}, ${BET.max}]` });
+      return;
+    }
+    const bet = centsToAmount(betCents);
+    if (s.balanceCents < betCents) {
+      res.status(400).json({ error: "insufficient balance" });
+      return;
+    }
+
+    const roundId = createRoundId();
+    const balanceBeforeCents = s.balanceCents;
+    adjustBalanceCents(s, -betCents);
+    const balanceAfterDebitCents = s.balanceCents;
+    const auditedRng = createAuditedRng();
+    const result = playRound(bet, auditedRng.rng);
+    const settled = settleSpinResultDetailed(result, s.market);
+    for (const event of settled.auditEvents) {
+      logAbsoluteCapAudit(event, {
+        username: s.username,
+        token: s.token,
+        bet,
+        roundId,
+      });
+    }
+    const response = buildSpinResponse(settled.settled, s.balanceCents, s.market);
+    response.roundId = roundId;
+    response.capped = settled.settled.capped;
+    response.absoluteCapped = settled.absoluteCapped;
+    response.market = s.market;
+    const winCents = amountToCents(response.totalWin);
+    adjustBalanceCents(s, winCents);
+    response.balance = getBalance(s);
+
+    // Balance consistency assertion: final = before - bet + win.
+    const expectedCents = balanceBeforeCents - betCents + winCents;
+    if (s.balanceCents !== expectedCents) {
+      console.error(
+        `[CRITICAL] Balance mismatch! expected=${expectedCents}, actual=${s.balanceCents}, ` +
+        `roundId=${roundId}, before=${balanceBeforeCents}, bet=${betCents}, win=${winCents}`,
+      );
+    }
+
+    logRoundAudit(buildRoundAuditEvent({
+      roundId,
       username: s.username,
       token: s.token,
-      bet,
-      roundId,
-    });
-  }
-  const response = buildSpinResponse(settled.settled, s.balanceCents, s.market);
-  response.roundId = roundId;
-  response.capped = settled.settled.capped;
-  response.absoluteCapped = settled.absoluteCapped;
-  response.market = s.market;
-  adjustBalanceCents(s, amountToCents(response.totalWin));
-  response.balance = getBalance(s);
-  logRoundAudit(buildRoundAuditEvent({
-    roundId,
-    username: s.username,
-    token: s.token,
-    market: s.market,
-    betCents,
-    balanceBeforeCents,
-    balanceAfterDebitCents,
-    balanceAfterCreditCents: s.balanceCents,
-    mathProfile: getActiveMathProfileMetadata(),
-    rngTrace: auditedRng.trace,
-    rawResult: result,
-    settled,
-  }));
+      market: s.market,
+      betCents,
+      balanceBeforeCents,
+      balanceAfterDebitCents,
+      balanceAfterCreditCents: s.balanceCents,
+      mathProfile: getActiveMathProfileMetadata(),
+      rngTrace: auditedRng.trace,
+      rawResult: result,
+      settled,
+    }));
 
-  res.json(response);
+    res.json(response);
+  } finally {
+    releaseSpinLock(s);
+  }
 });
 
 const PORT = Number(process.env.PORT ?? 3000);

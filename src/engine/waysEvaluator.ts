@@ -136,7 +136,10 @@ export function evaluateWays(
       multipliersPerReel.slice(0, matchCount),
       EXPOSURE.maxMultiplierCap,
     );
-    const symbolPay = (symbolDef.pays as any)[matchCount] as number;
+    if (matchCount !== 3 && matchCount !== 4 && matchCount !== 5) {
+      throw new Error(`Invalid match count ${matchCount} for symbol ${sym}`);
+    }
+    const symbolPay = symbolDef.pays[matchCount as 3 | 4 | 5];
     const baseAmount = symbolPay * cappedWayMultiplierTotal * betPerWay;
     const amount = baseAmount * spinMultiplier;
 

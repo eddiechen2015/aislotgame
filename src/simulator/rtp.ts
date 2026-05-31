@@ -126,7 +126,10 @@ function report(acc: Accum, bet: number): void {
   const hitFreq = acc.hits / acc.spins;
   const fsFreq = acc.freeSpinTriggers / acc.spins;
   const meanX = acc.sumWinX / acc.spins;
-  const varX = acc.sumWinXSq / acc.spins - meanX * meanX;
+  // 样本方差（Bessel 校正，除以 N-1）
+  const varX = acc.spins > 1
+    ? (acc.sumWinXSq - acc.spins * meanX * meanX) / (acc.spins - 1)
+    : 0;
   const stdX = Math.sqrt(Math.max(0, varX));
   // Volatility index ≈ std dev of return / bet over a large sample.
   // Industry convention also uses a normalized form; here we report both.

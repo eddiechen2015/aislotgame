@@ -1,0 +1,551 @@
+{
+  "metadata": {
+    "schemaVersion": 1,
+    "profileId": "asian-tour-tuned",
+    "profileVersion": "0.2.0",
+    "gameCode": "ASIAN-TOUR-01",
+    "gameVersion": "0.1.0",
+    "status": "candidate",
+    "source": "sim:tune",
+    "createdAt": "2026-05-31T02:00:16.246Z",
+    "updatedAt": "2026-05-31T02:00:16.246Z",
+    "targets": {
+      "rtp": {
+        "target": 0.962,
+        "tolerance": 0.015
+      },
+      "baseRtp": {
+        "target": 0.58,
+        "tolerance": 0.015
+      },
+      "fsRtp": {
+        "target": 0.382,
+        "tolerance": 0.02
+      },
+      "hitFreq": {
+        "target": 0.3,
+        "tolerance": 0.025
+      },
+      "fsFreq": {
+        "target": 0.007692307692307693,
+        "tolerance": 0.0015
+      },
+      "stdDevX": {
+        "target": 22,
+        "tolerance": 10
+      },
+      "maxWinX": {
+        "max": 30000
+      }
+    },
+    "notes": [
+      "Scope-B retune: RTP 91.4%->96.2%, base/FS split corrected to 58/38, hit freq 48.6%->30.9%.",
+      "tuner params: {\"baseLowScale\":6.74,\"basePremScale\":6.74,\"fsLowScale\":7.7,\"fsPremScale\":7.7,\"scatterScale\":1,\"baseScatterDelta\":-2,\"baseWildDelta\":0,\"basePremDelta\":0,\"fsScatterDelta\":0,\"fsWildDelta\":2,\"fsPremDelta\":4,\"blanks\":[\"J\",\"10\",\"Q\"]}"
+    ]
+  },
+  "config": {
+    "baseSymbols": {
+      "10": {
+        "id": "10",
+        "kind": "low",
+        "pays": {
+          "3": 57.196381,
+          "4": 152.523686,
+          "5": 571.963814
+        }
+      },
+      "A": {
+        "id": "A",
+        "kind": "low",
+        "pays": {
+          "3": 19.065458,
+          "4": 38.130923,
+          "5": 190.654609
+        }
+      },
+      "K": {
+        "id": "K",
+        "kind": "low",
+        "pays": {
+          "3": 22.878553,
+          "4": 57.196381,
+          "5": 228.785526
+        }
+      },
+      "Q": {
+        "id": "Q",
+        "kind": "low",
+        "pays": {
+          "3": 30.504735,
+          "4": 76.26184,
+          "5": 305.047365
+        }
+      },
+      "J": {
+        "id": "J",
+        "kind": "low",
+        "pays": {
+          "3": 38.130923,
+          "4": 114.392763,
+          "5": 381.309205
+        }
+      },
+      "NINJA": {
+        "id": "NINJA",
+        "kind": "premium",
+        "pays": {
+          "3": 191.386755,
+          "4": 574.160265,
+          "5": 1913.867558
+        }
+      },
+      "DRAGON": {
+        "id": "DRAGON",
+        "kind": "premium",
+        "pays": {
+          "3": 306.218811,
+          "4": 956.933782,
+          "5": 3062.188102
+        }
+      },
+      "PHOENIX": {
+        "id": "PHOENIX",
+        "kind": "premium",
+        "pays": {
+          "3": 459.328216,
+          "4": 1531.094048,
+          "5": 4593.28215
+        }
+      },
+      "SHOGUN": {
+        "id": "SHOGUN",
+        "kind": "premium",
+        "pays": {
+          "3": 765.547027,
+          "4": 3062.188102,
+          "5": 9569.337818
+        }
+      },
+      "WILD": {
+        "id": "WILD",
+        "kind": "wild"
+      },
+      "SCATTER": {
+        "id": "SCATTER",
+        "kind": "scatter"
+      }
+    },
+    "freeSpinSymbols": {
+      "10": {
+        "id": "10",
+        "kind": "low",
+        "pays": {
+          "3": 65.343047,
+          "4": 174.248128,
+          "5": 653.43047
+        }
+      },
+      "A": {
+        "id": "A",
+        "kind": "low",
+        "pays": {
+          "3": 21.781013,
+          "4": 43.562034,
+          "5": 217.810162
+        }
+      },
+      "K": {
+        "id": "K",
+        "kind": "low",
+        "pays": {
+          "3": 26.137219,
+          "4": 65.343047,
+          "5": 261.372188
+        }
+      },
+      "Q": {
+        "id": "Q",
+        "kind": "low",
+        "pays": {
+          "3": 34.849623,
+          "4": 87.12406,
+          "5": 348.496248
+        }
+      },
+      "J": {
+        "id": "J",
+        "kind": "low",
+        "pays": {
+          "3": 43.562034,
+          "4": 130.686094,
+          "5": 435.620308
+        }
+      },
+      "NINJA": {
+        "id": "NINJA",
+        "kind": "premium",
+        "pays": {
+          "3": 218.64659,
+          "4": 655.939769,
+          "5": 2186.465905
+        }
+      },
+      "DRAGON": {
+        "id": "DRAGON",
+        "kind": "premium",
+        "pays": {
+          "3": 349.834547,
+          "4": 1093.232956,
+          "5": 3498.345458
+        }
+      },
+      "PHOENIX": {
+        "id": "PHOENIX",
+        "kind": "premium",
+        "pays": {
+          "3": 524.75182,
+          "4": 1749.172725,
+          "5": 5247.518184
+        }
+      },
+      "SHOGUN": {
+        "id": "SHOGUN",
+        "kind": "premium",
+        "pays": {
+          "3": 874.586367,
+          "4": 3498.345458,
+          "5": 10932.329554
+        }
+      },
+      "WILD": {
+        "id": "WILD",
+        "kind": "wild"
+      },
+      "SCATTER": {
+        "id": "SCATTER",
+        "kind": "scatter"
+      }
+    },
+    "baseScatterPayoutXBet": {
+      "3": 25.305503,
+      "4": 101.222011,
+      "5": 506.110055
+    },
+    "baseReelSymbolCounts": [
+      {
+        "10": 40,
+        "A": 61,
+        "K": 56,
+        "Q": 50,
+        "J": 45,
+        "NINJA": 16,
+        "DRAGON": 11,
+        "PHOENIX": 7,
+        "SHOGUN": 4,
+        "WILD": 1,
+        "SCATTER": 9
+      },
+      {
+        "10": 40,
+        "A": 61,
+        "K": 56,
+        "Q": 50,
+        "J": 45,
+        "NINJA": 19,
+        "DRAGON": 13,
+        "PHOENIX": 9,
+        "SHOGUN": 5,
+        "WILD": 2,
+        "SCATTER": 6
+      },
+      {
+        "10": 35,
+        "A": 56,
+        "K": 51,
+        "Q": 45,
+        "J": 40,
+        "NINJA": 21,
+        "DRAGON": 16,
+        "PHOENIX": 11,
+        "SHOGUN": 6,
+        "WILD": 3,
+        "SCATTER": 14
+      },
+      {
+        "10": 40,
+        "A": 61,
+        "K": 56,
+        "Q": 50,
+        "J": 45,
+        "NINJA": 19,
+        "DRAGON": 13,
+        "PHOENIX": 9,
+        "SHOGUN": 5,
+        "WILD": 2,
+        "SCATTER": 6
+      },
+      {
+        "10": 40,
+        "A": 61,
+        "K": 56,
+        "Q": 50,
+        "J": 45,
+        "NINJA": 16,
+        "DRAGON": 11,
+        "PHOENIX": 7,
+        "SHOGUN": 4,
+        "WILD": 1,
+        "SCATTER": 9
+      }
+    ],
+    "baseReelStripOrders": [
+      [
+        "A",
+        "10",
+        "K",
+        "NINJA",
+        "Q",
+        "J",
+        "DRAGON",
+        "A",
+        "SCATTER",
+        "K",
+        "PHOENIX",
+        "Q",
+        "WILD",
+        "J",
+        "SHOGUN"
+      ],
+      [
+        "K",
+        "A",
+        "Q",
+        "NINJA",
+        "10",
+        "J",
+        "DRAGON",
+        "K",
+        "SCATTER",
+        "A",
+        "PHOENIX",
+        "Q",
+        "WILD",
+        "10",
+        "SHOGUN"
+      ],
+      [
+        "Q",
+        "A",
+        "J",
+        "NINJA",
+        "10",
+        "K",
+        "DRAGON",
+        "Q",
+        "SCATTER",
+        "A",
+        "PHOENIX",
+        "J",
+        "WILD",
+        "10",
+        "SHOGUN"
+      ],
+      [
+        "J",
+        "K",
+        "A",
+        "NINJA",
+        "Q",
+        "10",
+        "DRAGON",
+        "J",
+        "SCATTER",
+        "K",
+        "PHOENIX",
+        "A",
+        "WILD",
+        "Q",
+        "SHOGUN"
+      ],
+      [
+        "10",
+        "A",
+        "K",
+        "NINJA",
+        "Q",
+        "J",
+        "DRAGON",
+        "10",
+        "SCATTER",
+        "A",
+        "PHOENIX",
+        "K",
+        "WILD",
+        "Q",
+        "SHOGUN"
+      ]
+    ],
+    "freeSpinReelSymbolCounts": [
+      {
+        "10": 40,
+        "A": 49,
+        "K": 49,
+        "Q": 49,
+        "J": 45,
+        "NINJA": 20,
+        "DRAGON": 15,
+        "PHOENIX": 11,
+        "SHOGUN": 8,
+        "WILD": 3,
+        "SCATTER": 11
+      },
+      {
+        "10": 40,
+        "A": 49,
+        "K": 49,
+        "Q": 49,
+        "J": 45,
+        "NINJA": 23,
+        "DRAGON": 17,
+        "PHOENIX": 13,
+        "SHOGUN": 9,
+        "WILD": 4,
+        "SCATTER": 8
+      },
+      {
+        "10": 35,
+        "A": 44,
+        "K": 44,
+        "Q": 44,
+        "J": 40,
+        "NINJA": 25,
+        "DRAGON": 20,
+        "PHOENIX": 15,
+        "SHOGUN": 10,
+        "WILD": 5,
+        "SCATTER": 16
+      },
+      {
+        "10": 40,
+        "A": 49,
+        "K": 49,
+        "Q": 49,
+        "J": 45,
+        "NINJA": 23,
+        "DRAGON": 17,
+        "PHOENIX": 13,
+        "SHOGUN": 9,
+        "WILD": 4,
+        "SCATTER": 8
+      },
+      {
+        "10": 40,
+        "A": 49,
+        "K": 49,
+        "Q": 49,
+        "J": 45,
+        "NINJA": 20,
+        "DRAGON": 15,
+        "PHOENIX": 11,
+        "SHOGUN": 8,
+        "WILD": 3,
+        "SCATTER": 11
+      }
+    ],
+    "freeSpinReelStripOrders": [
+      [
+        "A",
+        "10",
+        "K",
+        "NINJA",
+        "Q",
+        "J",
+        "DRAGON",
+        "A",
+        "SCATTER",
+        "K",
+        "PHOENIX",
+        "Q",
+        "WILD",
+        "J",
+        "SHOGUN"
+      ],
+      [
+        "K",
+        "A",
+        "Q",
+        "NINJA",
+        "10",
+        "J",
+        "DRAGON",
+        "K",
+        "SCATTER",
+        "A",
+        "PHOENIX",
+        "Q",
+        "WILD",
+        "10",
+        "SHOGUN"
+      ],
+      [
+        "Q",
+        "A",
+        "J",
+        "NINJA",
+        "10",
+        "K",
+        "DRAGON",
+        "Q",
+        "SCATTER",
+        "A",
+        "PHOENIX",
+        "J",
+        "WILD",
+        "10",
+        "SHOGUN"
+      ],
+      [
+        "J",
+        "K",
+        "A",
+        "NINJA",
+        "Q",
+        "10",
+        "DRAGON",
+        "J",
+        "SCATTER",
+        "K",
+        "PHOENIX",
+        "A",
+        "WILD",
+        "Q",
+        "SHOGUN"
+      ],
+      [
+        "10",
+        "A",
+        "K",
+        "NINJA",
+        "Q",
+        "J",
+        "DRAGON",
+        "10",
+        "SCATTER",
+        "A",
+        "PHOENIX",
+        "K",
+        "WILD",
+        "Q",
+        "SHOGUN"
+      ]
+    ],
+    "payableSymbols": [
+      "A",
+      "K",
+      "NINJA",
+      "DRAGON",
+      "PHOENIX",
+      "SHOGUN"
+    ]
+  }
+}

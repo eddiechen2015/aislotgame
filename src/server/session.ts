@@ -12,9 +12,8 @@ export interface Session {
   market: Market;
   balanceCents: number;
   createdAt: number;
-  /** Active free spin session, if any (carries across spin calls). */
-  // Note: in this demo the entire FS session is resolved synchronously inside
-  // playRound() and reported in one response. No persistent FS state needed.
+  /** Per-session spin lock to prevent concurrent spin requests. */
+  spinLocked: boolean;
 }
 
 const sessions = new Map<string, Session>();
@@ -29,6 +28,7 @@ export function createSession(username: string, market: Market = DEFAULT_MARKET)
     market,
     balanceCents: STARTING_BALANCE_CENTS,
     createdAt: Date.now(),
+    spinLocked: false,
   };
   sessions.set(token, s);
   return s;
@@ -43,7 +43,23 @@ export function getBalance(session: Session): number {
   return centsToAmount(session.balanceCents);
 }
 
+export function acquireSpinLock(session: Session): boolean {
+  if (session.spinLocked) return false;
+  session.spinLocked = true;
+  return true;
+}
+
+export function releaseSpinLock(session: Session): void {
+  session.spinLocked = false;
+}
+
 export function adjustBalanceCents(session: Session, deltaCents: number): number {
-  session.balanceCents = Math.max(0, session.balanceCents + deltaCents);
+  const newBalance = session.balanceCents + deltaCents;
+  if (newBalance < 0) {
+    throw new Error(
+      `Balance underflow: current=${session.balanceCents}, delta=${deltaCents}, result=${newBalance}`,
+    );
+  }
+  session.balanceCents = newBalance;
   return session.balanceCents;
 }
