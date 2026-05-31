@@ -17,7 +17,7 @@ import { settleSpinResultDetailed } from "../settlement/settleSpin";
 import { SpinResult, playRound } from "../engine/spinEngine";
 import { buildRoundAuditEvent, hashToken, writeRoundAuditJsonl } from "../server/audit";
 import { createAuditedRng } from "../server/auditRng";
-import { buildConfigResponse } from "../server/configResponse";
+import { buildInternalConfigResponse } from "../server/configResponse";
 import { amountToCents } from "../server/money";
 import { createRoundId } from "../server/roundId";
 import { loadAuditEvents, verifyRoundAuditEvent } from "../simulator/auditVerify";
@@ -230,7 +230,7 @@ function testMathProfileRuntimeLoad(): void {
 
     assert.equal(getActiveMathProfileMetadata().profileId, "test-approved-profile");
     assert.equal(getRuntimeMathConfig().baseSymbols.A.pays![3], 123);
-    const configResponse = buildConfigResponse();
+    const configResponse = buildInternalConfigResponse();
     assert.equal(configResponse.mathProfile.profileId, "test-approved-profile");
     assert.equal(configResponse.paytable.find((entry) => entry.id === "A")!.pays![3], 123);
 

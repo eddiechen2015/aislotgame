@@ -5,7 +5,7 @@
  *   POST /api/login     { username, password? } -> { token, balance }
  *   GET  /api/me        Authorization: Bearer <token> -> session info
  *   POST /api/spin      { bet }                       -> SpinResult + balance
- *   GET  /api/config    -> public game config (bet range, paytable)
+ *   GET  /api/config    -> public game config (bet range, symbols, limits)
  *
  * Auth: simple bearer token from /api/login. NOT for production.
  * Static: serves /public for the test front page.
@@ -30,12 +30,14 @@ import { buildSpinResponse, settleSpinResultDetailed } from "./spinResponse";
 import { amountToCents, centsToAmount, parseAmountToCents } from "./money";
 import { createRoundId } from "./roundId";
 import { acquireSpinLock, adjustBalanceCents, createSession, getBalance, getSession, releaseSpinLock, Session } from "./session";
+import { rateLimiter } from "./rateLimiter";
 
 const loadedProfile = loadMathProfileFromEnv();
 
 const app = express();
 app.use(cors());
 app.use(express.json({ limit: "1mb" }));
+app.use(rateLimiter());
 
 const publicDir = path.resolve(__dirname, "..", "..", "public");
 app.use(express.static(publicDir));
@@ -73,6 +75,10 @@ app.post("/api/login", (req, res) => {
   }
   // Demo-only: no password check. Any username creates a fresh session.
   const s = createSession(username.trim(), market);
+  if (!s) {
+    res.status(503).json({ error: "server at capacity, try again later" });
+    return;
+  }
   res.json({
     token: s.token,
     username: s.username,
