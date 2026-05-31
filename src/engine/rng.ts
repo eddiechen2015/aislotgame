@@ -29,12 +29,14 @@ export function mulberry32(seed: number): RNG {
       return Math.floor(next() * n);
     },
     pickWeighted(weights: number[]) {
+      if (weights.length === 0) throw new Error("pickWeighted called with empty weights array");
       let total = 0;
       for (const w of weights) total += w;
+      if (total <= 0) throw new Error("pickWeighted called with non-positive total weight");
       let r = next() * total;
       for (let i = 0; i < weights.length; i++) {
         r -= weights[i];
-        if (r < 0) return i;
+        if (r <= 0) return i;
       }
       return weights.length - 1;
     },
@@ -47,12 +49,14 @@ export function defaultRng(): RNG {
     next: Math.random,
     nextInt(n) { return Math.floor(Math.random() * n); },
     pickWeighted(weights: number[]) {
+      if (weights.length === 0) throw new Error("pickWeighted called with empty weights array");
       let total = 0;
       for (const w of weights) total += w;
+      if (total <= 0) throw new Error("pickWeighted called with non-positive total weight");
       let r = Math.random() * total;
       for (let i = 0; i < weights.length; i++) {
         r -= weights[i];
-        if (r < 0) return i;
+        if (r <= 0) return i;
       }
       return weights.length - 1;
     },

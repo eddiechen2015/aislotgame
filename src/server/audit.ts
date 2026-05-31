@@ -1,4 +1,5 @@
 import { createHash } from "crypto";
+import { appendFile, mkdir } from "node:fs/promises";
 import { appendFileSync, mkdirSync } from "node:fs";
 import path from "node:path";
 
@@ -139,13 +140,21 @@ export function buildRoundAuditEvent(args: {
 
 export function logRoundAudit(event: RoundAuditEvent): void {
   console.info("[round-audit]", JSON.stringify(event));
-  writeRoundAuditJsonl(event);
+  writeRoundAuditAsync(event).catch((err) => {
+    console.error("[audit-write-fail]", err instanceof Error ? err.message : String(err));
+  });
 }
 
 export function roundAuditPath(env = process.env): string {
   return path.resolve(process.cwd(), env.ROUND_AUDIT_PATH ?? "artifacts/audit/round-audit.jsonl");
 }
 
+async function writeRoundAuditAsync(event: RoundAuditEvent, pathname = roundAuditPath()): Promise<void> {
+  await mkdir(path.dirname(pathname), { recursive: true });
+  await appendFile(pathname, JSON.stringify(event) + "\n", "utf8");
+}
+
+/** Synchronous variant for tools that require blocking writes (e.g. test harnesses). */
 export function writeRoundAuditJsonl(event: RoundAuditEvent, pathname = roundAuditPath()): void {
   mkdirSync(path.dirname(pathname), { recursive: true });
   appendFileSync(pathname, JSON.stringify(event) + "\n", "utf8");

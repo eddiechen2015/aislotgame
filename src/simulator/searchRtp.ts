@@ -385,7 +385,9 @@ async function evaluateCandidateSeed(
   const hitFreq = hits / spins;
   const fsFreq = fsTriggers / spins;
   const meanWinX = sumWinX / spins;
-  const variance = Math.max(0, sumWinXSquared / spins - meanWinX ** 2);
+  const variance = spins > 1
+    ? Math.max(0, (sumWinXSquared - spins * meanWinX ** 2) / (spins - 1))
+    : 0;
 
   return {
     seed,

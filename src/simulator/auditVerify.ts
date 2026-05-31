@@ -75,8 +75,11 @@ function createReplayRng(trace: RngTraceEntry[]): { rng: RNG; consumedCount: () 
   };
 }
 
+// 使用相对 + 绝对容差混合，避免大数场景下 1e-9 绝对容差太严格
 function approxEqual(actual: number, expected: number, epsilon = 1e-9): boolean {
-  return Math.abs(actual - expected) <= epsilon;
+  const diff = Math.abs(actual - expected);
+  const scale = Math.max(1, Math.abs(expected), Math.abs(actual));
+  return diff <= epsilon * scale;
 }
 
 function assertNumberEqual(failures: string[], label: string, actual: number, expected: number, epsilon = 1e-9): void {
@@ -120,17 +123,17 @@ export async function verifyRoundAuditReplay(event: RoundAuditEvent, profile: Ru
   assertNumberEqual(failures, "raw.baseCascadeWin", event.raw.baseCascadeWin, raw.base.cascadeWin);
   assertNumberEqual(failures, "raw.scatterPay", event.raw.scatterPay, raw.base.scatterPay);
   if (event.raw.scatterCount !== raw.base.scatterCount) {
-    failures.push(`raw.scatterCount replay mismatch: expected ${raw.base.scatterCount}, got ${event.raw.scatterCount}`);
+    failures.push(`raw.scatterCount replay mismatch: expected ${event.raw.scatterCount}, got ${raw.base.scatterCount}`);
   }
   if (event.raw.freeSpinsTriggered !== raw.base.freeSpinsTriggered) {
-    failures.push(`raw.freeSpinsTriggered replay mismatch: expected ${raw.base.freeSpinsTriggered}, got ${event.raw.freeSpinsTriggered}`);
+    failures.push(`raw.freeSpinsTriggered replay mismatch: expected ${event.raw.freeSpinsTriggered}, got ${raw.base.freeSpinsTriggered}`);
   }
   assertNumberEqual(failures, "raw.freeSpinTotalWin", event.raw.freeSpinTotalWin, raw.freeSpins?.totalWin ?? 0);
   if (event.raw.freeSpinTotalSpins !== (raw.freeSpins?.totalSpins ?? 0)) {
-    failures.push(`raw.freeSpinTotalSpins replay mismatch: expected ${raw.freeSpins?.totalSpins ?? 0}, got ${event.raw.freeSpinTotalSpins}`);
+    failures.push(`raw.freeSpinTotalSpins replay mismatch: expected ${event.raw.freeSpinTotalSpins}, got ${raw.freeSpins?.totalSpins ?? 0}`);
   }
   if (event.raw.capped !== raw.capped) {
-    failures.push(`raw.capped replay mismatch: expected ${raw.capped}, got ${event.raw.capped}`);
+    failures.push(`raw.capped replay mismatch: expected ${event.raw.capped}, got ${raw.capped}`);
   }
 
   assertCentsEqual(failures, "settled.totalWinCents", event.settled.totalWinCents, amountToCents(settled.settled.totalWin));
@@ -139,13 +142,13 @@ export async function verifyRoundAuditReplay(event: RoundAuditEvent, profile: Ru
   assertNumberEqual(failures, "settled.scatterPay", event.settled.scatterPay, settled.settled.base.scatterPay);
   assertNumberEqual(failures, "settled.freeSpinTotalWin", event.settled.freeSpinTotalWin, settled.settled.freeSpins?.totalWin ?? 0);
   if (event.settled.capped !== settled.settled.capped) {
-    failures.push(`settled.capped replay mismatch: expected ${settled.settled.capped}, got ${event.settled.capped}`);
+    failures.push(`settled.capped replay mismatch: expected ${event.settled.capped}, got ${settled.settled.capped}`);
   }
   if (event.settled.absoluteCapped !== settled.absoluteCapped) {
-    failures.push(`settled.absoluteCapped replay mismatch: expected ${settled.absoluteCapped}, got ${event.settled.absoluteCapped}`);
+    failures.push(`settled.absoluteCapped replay mismatch: expected ${event.settled.absoluteCapped}, got ${settled.absoluteCapped}`);
   }
   if (event.capEvents.length !== settled.auditEvents.length) {
-    failures.push(`capEvents replay mismatch: expected ${settled.auditEvents.length}, got ${event.capEvents.length}`);
+    failures.push(`capEvents count replay mismatch: expected ${event.capEvents.length}, got ${settled.auditEvents.length}`);
   }
   settled.auditEvents.forEach((expected, index) => {
     const actual = event.capEvents[index];

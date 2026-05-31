@@ -16,17 +16,20 @@ import { runSpin } from "./cascade";
 import { runFreeSpins } from "./freeSpins";
 
 export function playRound(bet: number, rng: RNG = defaultRng()): SpinResult {
-  if (bet < BET.min || bet > BET.max) {
+  if (!Number.isFinite(bet) || bet < BET.min || bet > BET.max) {
     throw new Error(`Bet ${bet} out of range [${BET.min}, ${BET.max}]`);
   }
 
   const base = runSpin(bet, rng, { spinMultiplier: 1, paysScatter: true });
 
   // Per-spin cap covers the base spin's total win (cascades + scatter pay).
+  // Compare in integer cents to avoid floating-point precision issues.
   const perSpinCap = EXPOSURE.maxWinX * bet;
+  const perSpinCapCents = Math.round(perSpinCap * 100);
   let baseSpinWin = base.cascadeWin + base.scatterPay;
+  const baseSpinWinCents = Math.round(baseSpinWin * 100);
   let capped = base.capped;
-  if (baseSpinWin > perSpinCap) {
+  if (baseSpinWinCents >= perSpinCapCents) {
     baseSpinWin = perSpinCap;
     capped = true;
   }

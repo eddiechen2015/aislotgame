@@ -20,6 +20,6 @@ export function parseAmountToCents(value: unknown): number | null {
       ? Number(value)
       : NaN;
 
-  if (!Number.isFinite(amount) || !isTwoDecimalAmount(amount)) return null;
+  if (!Number.isFinite(amount) || amount < 0 || !isTwoDecimalAmount(amount)) return null;
   return amountToCents(amount);
 }
