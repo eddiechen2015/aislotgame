@@ -75,6 +75,11 @@ function buildReelStrip(
     cursor = (order.indexOf(fallback) + 1) % order.length;
   }
 
+  if (strip.length !== total) {
+    throw new Error(
+      `Failed to build reel strip: expected ${total} symbols, placed ${strip.length}`,
+    );
+  }
   return strip;
 }
 
@@ -123,6 +128,9 @@ function drawFromStrip(reel: number, offset: number, kind: ReelSetKind): SymbolI
 /** Draw a non-special symbol (used when demoting a wild). */
 function drawFallback(reel: number, rng: RNG, kind: ReelSetKind): SymbolId {
   const t = getReelTables(kind)[reel];
+  if (t.fallbackSymbols.length === 0) {
+    throw new Error(`Reel ${reel} has no non-special symbols for wild demotion`);
+  }
   return t.fallbackSymbols[rng.pickWeighted(t.fallbackWeights)];
 }
 

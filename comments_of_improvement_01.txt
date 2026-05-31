@@ -1,0 +1,63 @@
+Follow-up — the math-tuning round behind this 👇
+
+  Goal: land a 96.2% RTP target without knocking the rest of the
+  math profile off-spec.
+
+  Starting profile: total RTP ~91.4%, hit frequency ~48.6%,
+  base/free-spin split off-target.
+
+  Process:
+  • Automated RTP search over candidate paytable/reel profiles
+    (common random numbers + adaptive racing)
+  • Tuner pass to lock the base vs free-spin RTP contribution
+  • Batch verification: 5 seeds × 4M = 20M spins (MGA market),
+    with mean / 95% CI / normalized-error reported per metric
+
+  Result (Monte-Carlo verified on the engine, not live production):
+  • Total RTP:        96.45%  (target 96.2%, inside tolerance)
+  • Base / FS split:  57.7% / 38.7%  (targets 58% / 38.2%)
+  • Hit frequency:    30.9%  (down from 48.6%)
+  • Free-spin freq:   ~1 in 117 spins
+  • Volatility (σ ×bet): ~22  (medium-high)
+  • Max observed win: ~11,077×  (cap 30,000×)
+
+  The point wasn't "make the number read 96.2%." Matching total RTP
+  is easy — matching total RTP *and* the base/FS split *and* hit
+  frequency *and* volatility *and* exposure caps at once is the real
+  engineering problem. Every candidate has to clear confidence-interval
+  checks before it can be promoted to an approved profile.
+
+  Caveat: these are simulation figures; the live runtime still needs
+  the approved profile wired in (+ lab-grade RNG) before any
+  real-money RTP claim.
+
+  ✂️  超短版（如果嫌上面长，发这个）
+
+  The tuning round behind this: moved the profile from ~91.4% → 96.2%
+  RTP while pulling hit frequency from 48.6% → 30.9% and fixing the
+  base/free-spin split to ~58/38. Verified over 20M simulated spins
+  (5 seeds, MGA) with 95% CIs per metric — total RTP landed at 96.45%,
+  volatility ~22, max win ~11,077×. Simulation figures, not live prod.
+
+  ---
+  📊 数字来源（全部来自 artifacts/asianTour.v0_2.verifyBatch.json，可追溯）：
+  
+  ┌─────────┬────────────┬──────────────┐
+  │  指标   │     值     │    target    │
+  ├─────────┼────────────┼──────────────┤
+  │ RTP     │ 0.9645     │ 0.962 ±0.015 │
+  ├─────────┼────────────┼──────────────┤
+  │ baseRtp │ 0.5771     │ 0.58         │
+  ├─────────┼────────────┼──────────────┤
+  │ fsRtp   │ 0.3874     │ 0.382        │
+  ├─────────┼────────────┼──────────────┤
+  │ hitFreq │ 0.3088     │ 0.30         │
+  ├─────────┼────────────┼──────────────┤
+  │ fsFreq  │ 0.00854    │ ~0.0077      │
+  ├─────────┼────────────┼──────────────┤
+  │ stdDevX │ 22.38      │ 22           │
+  ├─────────┼────────────┼──────────────┤
+  │ maxWinX │ 11,077     │ <30,000      │
+  ├─────────┼────────────┼──────────────┤
+  │ spins   │ 20M (5×4M) │ —            │
+  └─────────┴────────────┴──────────────┘

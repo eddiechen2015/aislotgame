@@ -22,8 +22,23 @@ export function getActiveMathProfileDocument(): MathProfileDocument {
 
 export function loadMathProfileDocument(profilePath: string): MathProfileDocument {
   const absolutePath = path.resolve(process.cwd(), profilePath);
-  const parsed = JSON.parse(readFileSync(absolutePath, "utf8"));
-  return normalizeMathProfileDocument(parsed, {
+  let raw: string;
+  try {
+    raw = readFileSync(absolutePath, "utf8");
+  } catch (err) {
+    throw new Error(
+      `Failed to read math profile from ${absolutePath}: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+  let parsed: unknown;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (err) {
+    throw new Error(
+      `Failed to parse math profile JSON from ${absolutePath}: ${err instanceof Error ? err.message : String(err)}`,
+    );
+  }
+  return normalizeMathProfileDocument(parsed as Record<string, unknown>, {
     source: `file:${absolutePath}`,
   });
 }

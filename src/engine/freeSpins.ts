@@ -28,7 +28,7 @@ export function runFreeSpins(totalBet: number, rng: RNG): FreeSpinSession {
   let totalWin = 0;
   let retriggerCount = 0;
 
-  while (remaining > 0) {
+  while (remaining > 0 && played < FREE_SPINS.maxTotalSpins) {
     played += 1;
     remaining -= 1;
     // Multiplier step is clamped at the last entry of the steps array.
