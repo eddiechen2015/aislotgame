@@ -9,6 +9,7 @@
     "dev": "ts-node src/server/index.ts",
     "sim": "ts-node src/simulator/rtp.ts",
     "sim:search": "ts-node src/simulator/searchRtp.ts",
+    "sim:tune": "ts-node src/simulator/tune.ts",
     "sim:verify": "ts-node src/simulator/verifyProfile.ts",
     "sim:verify-batch": "ts-node src/simulator/verifyProfileBatch.ts",
     "sim:promote-profile": "ts-node src/simulator/promoteProfile.ts",
