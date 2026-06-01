@@ -162,22 +162,21 @@ function testAtomicEventRounding(): void {
 }
 
 function testRuntimeOverrideResetAndCache(): void {
-  const original = getRuntimeMathConfig();
+  const original = buildDefaultRuntimeMathConfig();
   const override: RuntimeMathConfig = {
     ...original,
-    baseSymbols: original.baseSymbols,
-    freeSpinSymbols: original.freeSpinSymbols,
-    baseScatterPayoutXBet: original.baseScatterPayoutXBet,
     baseReelSymbolCounts: Array.from({ length: 5 }, () => ({
       A: 3, K: 0, Q: 0, J: 0, "10": 0,
       NINJA: 0, DRAGON: 0, PHOENIX: 0, SHOGUN: 0,
       WILD: 0, SCATTER: 0,
     })),
+    baseReelStripOrders: Array.from({ length: 5 }, () => ["A"]),
     freeSpinReelSymbolCounts: Array.from({ length: 5 }, () => ({
       A: 3, K: 0, Q: 0, J: 0, "10": 0,
       NINJA: 0, DRAGON: 0, PHOENIX: 0, SHOGUN: 0,
       WILD: 0, SCATTER: 0,
     })),
+    freeSpinReelStripOrders: Array.from({ length: 5 }, () => ["A"]),
   };
   const rng = { next: () => 0, nextInt: () => 0, pickWeighted: () => 0 };
 
@@ -193,12 +192,52 @@ function testRuntimeOverrideResetAndCache(): void {
 }
 
 function testInvalidMathConfigRejected(): void {
-  const original = getRuntimeMathConfig();
-  const invalid: RuntimeMathConfig = {
-    ...original,
+  const original = buildDefaultRuntimeMathConfig();
+  const invalidShape: RuntimeMathConfig = {
+    ...structuredClone(original),
     baseReelStripOrders: [],
   };
-  assert.throws(() => validateRuntimeMathConfig(invalid));
+  assert.throws(() => validateRuntimeMathConfig(invalidShape));
+
+  const missingPositiveCountSymbol = structuredClone(original);
+  missingPositiveCountSymbol.baseReelStripOrders[0] = missingPositiveCountSymbol.baseReelStripOrders[0]
+    .filter((symbol) => symbol !== "DRAGON");
+  assert.throws(
+    () => validateRuntimeMathConfig(missingPositiveCountSymbol),
+    /must contain DRAGON/,
+  );
+
+  const invalidPayable = structuredClone(original);
+  invalidPayable.payableSymbols = [...invalidPayable.payableSymbols, "SCATTER"];
+  assert.throws(
+    () => validateRuntimeMathConfig(invalidPayable),
+    /payableSymbols cannot include SCATTER/,
+  );
+
+  const invalidScatter = structuredClone(original);
+  invalidScatter.baseScatterPayoutXBet[3] = Number.NaN;
+  assert.throws(
+    () => validateRuntimeMathConfig(invalidScatter),
+    /baseScatterPayoutXBet\.3/,
+  );
+}
+
+function testRuntimeMathConfigIsImmutableAfterInstall(): void {
+  const override = buildDefaultRuntimeMathConfig();
+  override.baseSymbols.A = { ...override.baseSymbols.A, pays: { 3: 123, 4: 123, 5: 123 } };
+
+  setRuntimeMathConfig(override);
+  override.baseSymbols.A.pays![3] = 456;
+  assert.equal(getRuntimeMathConfig().baseSymbols.A.pays![3], 123);
+  assert.ok(Object.isFrozen(getRuntimeMathConfig()));
+  assert.ok(Object.isFrozen(getRuntimeMathConfig().baseSymbols.A.pays));
+  assert.throws(
+    () => {
+      getRuntimeMathConfig().baseSymbols.A.pays![3] = 789;
+    },
+    /read only|Cannot assign/,
+  );
+  resetRuntimeMathConfig();
 }
 
 function testMathProfileDocumentNormalization(): void {
@@ -425,6 +464,7 @@ async function main(): Promise<void> {
     testAtomicEventRounding();
     testRuntimeOverrideResetAndCache();
     testInvalidMathConfigRejected();
+    testRuntimeMathConfigIsImmutableAfterInstall();
     testMathProfileDocumentNormalization();
     testMathProfileRuntimeLoad();
     testApprovedProfileRuntimeGate();

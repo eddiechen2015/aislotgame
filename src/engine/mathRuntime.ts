@@ -13,7 +13,21 @@ export interface RuntimeMathConfig {
   payableSymbols: SymbolId[];
 }
 
-const defaultRuntimeMathConfig: RuntimeMathConfig = buildDefaultRuntimeMathConfig();
+function deepFreeze<T>(value: T): T {
+  if (value && typeof value === "object" && !Object.isFrozen(value)) {
+    Object.freeze(value);
+    for (const child of Object.values(value as Record<string, unknown>)) {
+      deepFreeze(child);
+    }
+  }
+  return value;
+}
+
+function cloneAndFreezeRuntimeMathConfig(config: RuntimeMathConfig): RuntimeMathConfig {
+  return deepFreeze(structuredClone(config));
+}
+
+const defaultRuntimeMathConfig: RuntimeMathConfig = cloneAndFreezeRuntimeMathConfig(buildDefaultRuntimeMathConfig());
 
 let runtimeMathConfig: RuntimeMathConfig = defaultRuntimeMathConfig;
 let runtimeMathConfigVersion = 0;
@@ -28,7 +42,7 @@ export function getRuntimeMathConfigVersion(): number {
 
 export function setRuntimeMathConfig(config: RuntimeMathConfig): void {
   validateRuntimeMathConfig(config);
-  runtimeMathConfig = config;
+  runtimeMathConfig = cloneAndFreezeRuntimeMathConfig(config);
   runtimeMathConfigVersion += 1;
 }
 
