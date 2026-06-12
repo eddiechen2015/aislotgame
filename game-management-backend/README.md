@@ -79,7 +79,7 @@ Full request/response contracts: [docs/operator-api.md](docs/operator-api.md)
 
 | Layer | Direction |
 |-------|-----------|
-| Runtime | .NET 8+ (LTS) |
+| Runtime | .NET 9 (net9.0) |
 | API | ASP.NET Core Web API |
 | Persistence | PostgreSQL (players, sessions, casino wallets, audit) |
 | Cache | Redis (session lookup, idempotency keys) |
@@ -90,14 +90,20 @@ Final stack choices will be confirmed during implementation.
 
 ## Project Status
 
-**Phase: Design & specification**
+**Phase: Initial implementation (v0.1)**
 
 - [x] Requirements captured
 - [x] Architecture documented
 - [x] API contracts drafted
-- [ ] Solution structure and .NET projects
-- [ ] Database schema
-- [ ] Implementation
+- [x] .NET solution (`Gms.sln`) — net9.0
+- [x] SQLite persistence + seed data
+- [x] Operator API (login, validate, transfer, games, launch)
+- [x] Internal API for Game Engine Service (session, wallet)
+- [ ] PostgreSQL production provider
+- [ ] HMAC signature enforcement (dev mode skips by default)
+- [ ] Redis session cache
+
+See [IMPLEMENTATION.md](IMPLEMENTATION.md) for run instructions.
 
 ## Glossary
 
