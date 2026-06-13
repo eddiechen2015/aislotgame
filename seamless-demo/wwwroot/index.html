@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seamless Demo - Login</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Seamless Demo Casino</h1>
+            <p class="subtitle">
+                Demo Operator Website &mdash;
+                <span class="badge badge-seamless">Seamless Wallet</span>
+            </p>
+        </div>
+
+        <h2 style="margin-bottom: 1rem; color: var(--text-secondary); font-size: 1rem; text-transform: uppercase; letter-spacing: 1px;">
+            Select a Demo Player
+        </h2>
+
+        <div id="players-grid" class="players-grid">
+            <div class="loading"><span class="spinner"></span> Loading players...</div>
+        </div>
+
+        <div id="status" class="status-msg"></div>
+
+        <button id="login-btn" class="btn btn-primary btn-login" disabled onclick="doLogin()">
+            Select a player to continue
+        </button>
+    </div>
+
+    <script>
+        let selectedPlayerId = null;
+
+        async function loadPlayers() {
+            try {
+                const res = await fetch('/api/auth/players');
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+
+                const grid = document.getElementById('players-grid');
+                grid.innerHTML = data.players.map(p => `
+                    <div class="player-card" data-id="${p.id}" onclick="selectPlayer('${p.id}')">
+                        <div class="name">${p.displayName}</div>
+                        <div class="player-id">ID: ${p.id}</div>
+                        <div>
+                            <span class="balance">$${p.balance}</span>
+                            <span class="currency">${p.currency}</span>
+                        </div>
+                    </div>
+                `).join('');
+            } catch (e) {
+                showStatus('error', 'Failed to load players: ' + e.message);
+            }
+        }
+
+        function selectPlayer(id) {
+            selectedPlayerId = id;
+            document.querySelectorAll('.player-card').forEach(c => c.classList.remove('selected'));
+            document.querySelector(`.player-card[data-id="${id}"]`).classList.add('selected');
+
+            const btn = document.getElementById('login-btn');
+            btn.disabled = false;
+            btn.textContent = `Login as ${id}`;
+        }
+
+        async function doLogin() {
+            if (!selectedPlayerId) return;
+
+            const btn = document.getElementById('login-btn');
+            btn.disabled = true;
+            btn.innerHTML = '<span class="spinner"></span> Logging in...';
+            hideStatus();
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ playerId: selectedPlayerId })
+                });
+
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+
+                // 存储 token 并跳转到大厅
+                sessionStorage.setItem('demo_token', data.token);
+                sessionStorage.setItem('demo_player', JSON.stringify({
+                    id: data.playerId,
+                    displayName: data.displayName,
+                    balance: data.balance,
+                    currency: data.currency
+                }));
+
+                showStatus('success', `Logged in as ${data.displayName}! Redirecting to lobby...`);
+                setTimeout(() => window.location.href = '/lobby.html', 500);
+            } catch (e) {
+                showStatus('error', e.message);
+                btn.disabled = false;
+                btn.textContent = `Login as ${selectedPlayerId}`;
+            }
+        }
+
+        function showStatus(type, msg) {
+            const el = document.getElementById('status');
+            el.className = `status-msg ${type}`;
+            el.textContent = msg;
+        }
+
+        function hideStatus() {
+            document.getElementById('status').className = 'status-msg';
+        }
+
+        // 如果已经登录，直接跳转到大厅
+        if (sessionStorage.getItem('demo_token')) {
+            window.location.href = '/lobby.html';
+        } else {
+            loadPlayers();
+        }
+    </script>
+</body>
+</html>

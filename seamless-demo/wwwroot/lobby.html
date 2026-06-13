@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Seamless Demo - Game Lobby</title>
+    <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Game Lobby</h1>
+            <p class="subtitle">
+                Seamless Demo Casino &mdash;
+                <span class="badge badge-seamless">Seamless Wallet</span>
+            </p>
+        </div>
+
+        <!-- Player Info Bar -->
+        <div class="player-bar">
+            <div class="player-info">
+                <div>
+                    <div class="player-name" id="player-name">--</div>
+                    <div class="session-id" id="session-info">Loading...</div>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <div>
+                    <div class="balance-display" id="player-balance">$--</div>
+                    <div style="text-align: right; color: var(--text-secondary); font-size: 0.8rem;" id="player-currency">USD</div>
+                </div>
+                <button class="btn-logout" onclick="doLogout()">Logout</button>
+            </div>
+        </div>
+
+        <div id="status" class="status-msg"></div>
+
+        <!-- Games Grid -->
+        <div id="games-grid" class="games-grid">
+            <div class="loading"><span class="spinner"></span> Loading games from GMS...</div>
+        </div>
+
+        <!-- Transaction History -->
+        <div class="transactions" id="transactions-section" style="display: none;">
+            <h3>Recent Wallet Transactions</h3>
+            <table class="tx-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Amount</th>
+                        <th>Balance After</th>
+                        <th>Game</th>
+                        <th>Round</th>
+                        <th>Time</th>
+                    </tr>
+                </thead>
+                <tbody id="tx-body"></tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        const token = sessionStorage.getItem('demo_token');
+        const playerInfo = JSON.parse(sessionStorage.getItem('demo_player') || '{}');
+
+        if (!token) {
+            window.location.href = '/index.html';
+        }
+
+        const GAME_ICONS = {
+            'slots': '🎰',
+            'table': '🃏',
+            'live': '🎲',
+            'default': '🎮'
+        };
+
+        function authHeaders() {
+            return { 'Authorization': `Bearer ${token}`, 'Content-Type': 'application/json' };
+        }
+
+        async function loadLobby() {
+            // 设置玩家信息
+            document.getElementById('player-name').textContent = playerInfo.displayName || playerInfo.id;
+            document.getElementById('player-balance').textContent = `$${playerInfo.balance}`;
+            document.getElementById('player-currency').textContent = playerInfo.currency || 'USD';
+
+            try {
+                const res = await fetch('/api/lobby/games', { headers: authHeaders() });
+
+                if (res.status === 401) {
+                    sessionStorage.clear();
+                    window.location.href = '/index.html';
+                    return;
+                }
+
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+
+                // 更新实时余额
+                if (data.player) {
+                    document.getElementById('player-balance').textContent = `$${data.player.balance}`;
+                    document.getElementById('player-currency').textContent = data.player.currency;
+                    document.getElementById('session-info').textContent = `Player: ${data.player.id}`;
+                }
+
+                renderGames(data.games || []);
+            } catch (e) {
+                showStatus('error', 'Failed to load games: ' + e.message);
+                document.getElementById('games-grid').innerHTML =
+                    '<p style="text-align:center; color: var(--text-secondary); padding: 2rem;">Could not connect to GMS. Make sure the GMS backend is running on port 5080.</p>';
+            }
+
+            // 加载交易历史
+            loadTransactions();
+        }
+
+        function renderGames(games) {
+            const grid = document.getElementById('games-grid');
+
+            if (games.length === 0) {
+                grid.innerHTML = '<p style="text-align:center; color: var(--text-secondary); padding: 2rem;">No games available</p>';
+                return;
+            }
+
+            grid.innerHTML = games.map(g => `
+                <div class="game-card">
+                    <div class="thumb">${GAME_ICONS[g.category] || GAME_ICONS.default}</div>
+                    <div class="info">
+                        <div class="game-name">${g.name}</div>
+                        <div class="game-category">${g.category}</div>
+                        <div class="bet-range">Bet: $${g.minBet || '?'} - $${g.maxBet || '?'}</div>
+                        <button class="btn btn-primary" onclick="launchGame('${g.gameId}', '${g.name}')">
+                            Play Now
+                        </button>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        async function launchGame(gameId, gameName) {
+            showStatus('info', `Launching ${gameName}...`);
+
+            try {
+                const res = await fetch('/api/lobby/launch', {
+                    method: 'POST',
+                    headers: authHeaders(),
+                    body: JSON.stringify({ gameId })
+                });
+
+                if (res.status === 401) {
+                    sessionStorage.clear();
+                    window.location.href = '/index.html';
+                    return;
+                }
+
+                const data = await res.json();
+                if (!data.success) throw new Error(data.error);
+
+                showStatus('success', `Redirecting to ${gameName}...`);
+
+                // 在新窗口中打开游戏，或者在当前窗口跳转
+                window.open(data.launchUrl, '_blank');
+                hideStatus();
+
+                // 启动余额轮询（游戏进行中余额会变）
+                startBalancePolling();
+            } catch (e) {
+                showStatus('error', 'Launch failed: ' + e.message);
+            }
+        }
+
+        async function loadTransactions() {
+            try {
+                const res = await fetch('/api/lobby/balance', { headers: authHeaders() });
+                const data = await res.json();
+                if (!data.success) return;
+
+                // 更新余额
+                document.getElementById('player-balance').textContent = `$${data.balance}`;
+
+                // 渲染交易历史
+                if (data.recentTransactions && data.recentTransactions.length > 0) {
+                    document.getElementById('transactions-section').style.display = 'block';
+                    document.getElementById('tx-body').innerHTML = data.recentTransactions.map(tx => `
+                        <tr>
+                            <td class="tx-${tx.type}">${tx.type.toUpperCase()}</td>
+                            <td class="tx-${tx.type}">$${tx.amount}</td>
+                            <td>$${tx.balanceAfter}</td>
+                            <td>${tx.gameId || '-'}</td>
+                            <td style="font-family: monospace; font-size: 0.75rem;">${tx.roundId ? tx.roundId.substring(0, 12) + '...' : '-'}</td>
+                            <td style="font-size: 0.8rem;">${new Date(tx.createdAt).toLocaleTimeString()}</td>
+                        </tr>
+                    `).join('');
+                }
+            } catch (e) {
+                // 静默处理
+            }
+        }
+
+        let pollingInterval = null;
+
+        function startBalancePolling() {
+            if (pollingInterval) return;
+            pollingInterval = setInterval(loadTransactions, 3000);
+        }
+
+        function stopBalancePolling() {
+            if (pollingInterval) {
+                clearInterval(pollingInterval);
+                pollingInterval = null;
+            }
+        }
+
+        function doLogout() {
+            stopBalancePolling();
+            sessionStorage.clear();
+            window.location.href = '/index.html';
+        }
+
+        function showStatus(type, msg) {
+            const el = document.getElementById('status');
+            el.className = `status-msg ${type}`;
+            el.textContent = msg;
+        }
+
+        function hideStatus() {
+            document.getElementById('status').className = 'status-msg';
+        }
+
+        // 页面可见性变化时刷新余额
+        document.addEventListener('visibilitychange', () => {
+            if (document.visibilityState === 'visible') {
+                loadTransactions();
+            }
+        });
+
+        loadLobby();
+    </script>
+</body>
+</html>
