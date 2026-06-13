@@ -48,11 +48,20 @@ public sealed class WalletRepository(GmsDbContext db) : IWalletRepository
     public Task<WalletTransaction?> GetByReferenceAsync(Guid playerId, string referenceId, CancellationToken ct = default) =>
         db.WalletTransactions.FirstOrDefaultAsync(x => x.PlayerId == playerId && x.ReferenceId == referenceId, ct);
 
+    public Task<WalletTransaction?> GetLatestTransactionAsync(Guid playerId, CancellationToken ct = default) =>
+        db.WalletTransactions
+            .Where(x => x.PlayerId == playerId)
+            .OrderByDescending(x => x.CreatedAt)
+            .FirstOrDefaultAsync(ct);
+
     public async Task AddWalletAsync(CasinoWallet wallet, CancellationToken ct = default) =>
         await db.CasinoWallets.AddAsync(wallet, ct);
 
     public async Task AddTransactionAsync(WalletTransaction tx, CancellationToken ct = default) =>
         await db.WalletTransactions.AddAsync(tx, ct);
+
+    public async Task ReloadWalletAsync(CasinoWallet wallet, CancellationToken ct = default) =>
+        await db.Entry(wallet).ReloadAsync(ct);
 
     public Task SaveChangesAsync(CancellationToken ct = default) => db.SaveChangesAsync(ct);
 }

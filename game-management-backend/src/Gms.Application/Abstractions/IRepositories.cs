@@ -27,8 +27,10 @@ public interface IWalletRepository
 {
     Task<CasinoWallet?> GetByPlayerIdAsync(Guid playerId, CancellationToken ct = default);
     Task<WalletTransaction?> GetByReferenceAsync(Guid playerId, string referenceId, CancellationToken ct = default);
+    Task<WalletTransaction?> GetLatestTransactionAsync(Guid playerId, CancellationToken ct = default);
     Task AddWalletAsync(CasinoWallet wallet, CancellationToken ct = default);
     Task AddTransactionAsync(WalletTransaction tx, CancellationToken ct = default);
+    Task ReloadWalletAsync(CasinoWallet wallet, CancellationToken ct = default);
     Task SaveChangesAsync(CancellationToken ct = default);
 }
 

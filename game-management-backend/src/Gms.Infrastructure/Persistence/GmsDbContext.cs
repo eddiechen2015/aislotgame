@@ -43,6 +43,7 @@ public sealed class GmsDbContext : DbContext
         {
             e.HasKey(x => x.Id);
             e.Property(x => x.Balance).HasPrecision(18, 2);
+            e.Property(x => x.Version).IsConcurrencyToken();
         });
 
         modelBuilder.Entity<WalletTransaction>(e =>

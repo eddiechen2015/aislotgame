@@ -55,7 +55,7 @@ public sealed class OperatorAuthMiddleware
         var opts = options.Value;
         if (!opts.SkipSignatureValidation)
         {
-            if (!ValidateSignature(context, op.ApiSecret))
+            if (!await ValidateSignatureAsync(context, op.ApiSecret))
             {
                 _logger.LogWarning("Invalid signature for operator {OperatorId}", op.Id);
                 await WriteUnauthorized(context);
@@ -67,7 +67,7 @@ public sealed class OperatorAuthMiddleware
         await _next(context);
     }
 
-    private static bool ValidateSignature(HttpContext context, string secret)
+    private static async Task<bool> ValidateSignatureAsync(HttpContext context, string secret)
     {
         var timestamp = context.Request.Headers["X-GMS-Timestamp"].ToString();
         var signature = context.Request.Headers["X-GMS-Signature"].ToString();
@@ -82,7 +82,7 @@ public sealed class OperatorAuthMiddleware
 
         context.Request.EnableBuffering();
         using var reader = new StreamReader(context.Request.Body, Encoding.UTF8, leaveOpen: true);
-        var body = reader.ReadToEndAsync().GetAwaiter().GetResult();
+        var body = await reader.ReadToEndAsync();
         context.Request.Body.Position = 0;
 
         var payload = $"{context.Request.Method}{context.Request.Path}{timestamp}{body}";

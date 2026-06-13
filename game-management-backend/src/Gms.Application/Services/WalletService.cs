@@ -4,6 +4,7 @@ using Gms.Application.Common;
 using Gms.Contracts.Wallet;
 using Gms.Domain.Entities;
 using Gms.Domain.Enums;
+using Microsoft.EntityFrameworkCore;
 
 namespace Gms.Application.Services;
 
@@ -56,46 +57,61 @@ public sealed class WalletService
         if (!string.Equals(player.Currency, request.Currency.Trim(), StringComparison.OrdinalIgnoreCase))
             throw new AppException("validation_error", "Currency mismatch.", 400);
 
-        var wallet = await _wallets.GetByPlayerIdAsync(player.Id, ct)
-            ?? throw new AppException("internal_error", "Casino wallet not found.", 500);
-
         var refId = string.IsNullOrWhiteSpace(request.Reference) ? idempotencyKey : request.Reference.Trim();
-        var existing = await _wallets.GetByReferenceAsync(player.Id, refId, ct);
-        if (existing is not null)
+        var existingTx = await _wallets.GetByReferenceAsync(player.Id, refId, ct);
+        if (existingTx is not null)
         {
             return new WalletTransferResponse
             {
-                TransactionId = existing.Id,
-                Balance = FormatAmount(existing.BalanceAfter),
+                TransactionId = existingTx.Id,
+                Balance = FormatAmount(existingTx.BalanceAfter),
                 Currency = player.Currency
             };
         }
 
-        wallet.Balance += amount;
-        wallet.UpdatedAt = DateTime.UtcNow;
-
-        var tx = new WalletTransaction
+        const int maxRetries = 3;
+        for (var attempt = 0; attempt < maxRetries; attempt++)
         {
-            Id = Guid.NewGuid(),
-            PlayerId = player.Id,
-            Type = WalletTransactionType.TransferIn,
-            Amount = amount,
-            BalanceAfter = wallet.Balance,
-            ReferenceId = refId,
-            CreatedAt = DateTime.UtcNow
-        };
-        await _wallets.AddTransactionAsync(tx, ct);
-        await _wallets.SaveChangesAsync(ct);
+            var wallet = await _wallets.GetByPlayerIdAsync(player.Id, ct)
+                ?? throw new AppException("internal_error", "Casino wallet not found.", 500);
 
-        var response = new WalletTransferResponse
-        {
-            TransactionId = tx.Id,
-            Balance = FormatAmount(wallet.Balance),
-            Currency = player.Currency
-        };
+            wallet.Balance += amount;
+            wallet.Version++;
+            wallet.UpdatedAt = DateTime.UtcNow;
 
-        await StoreIdempotencyAsync(op.Id, idempotencyKey, endpoint, 200, response, ct);
-        return response;
+            var tx = new WalletTransaction
+            {
+                Id = Guid.NewGuid(),
+                PlayerId = player.Id,
+                Type = WalletTransactionType.TransferIn,
+                Amount = amount,
+                BalanceAfter = wallet.Balance,
+                ReferenceId = refId,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _wallets.AddTransactionAsync(tx, ct);
+
+            try
+            {
+                await _wallets.SaveChangesAsync(ct);
+
+                var response = new WalletTransferResponse
+                {
+                    TransactionId = tx.Id,
+                    Balance = FormatAmount(wallet.Balance),
+                    Currency = player.Currency
+                };
+
+                await StoreIdempotencyAsync(op.Id, idempotencyKey, endpoint, 200, response, ct);
+                return response;
+            }
+            catch (DbUpdateConcurrencyException) when (attempt < maxRetries - 1)
+            {
+                await _wallets.ReloadWalletAsync(wallet, ct);
+            }
+        }
+
+        throw new AppException("conflict", "Wallet update conflict, please retry.", 409);
     }
 
     public async Task<WalletOperationResponse> DebitAsync(WalletDebitRequest request, CancellationToken ct = default)
@@ -200,64 +216,92 @@ public sealed class WalletService
     private async Task<WalletOperationResponse> DebitNormalAsync(
         Player player, decimal amount, string gameId, string roundId, CancellationToken ct)
     {
-        var wallet = await _wallets.GetByPlayerIdAsync(player.Id, ct)
-            ?? throw new AppException("internal_error", "Casino wallet not found.", 500);
-
-        if (wallet.Balance < amount)
-            throw new AppException("insufficient_funds", "Insufficient casino wallet balance.", 402);
-
-        wallet.Balance -= amount;
-        wallet.UpdatedAt = DateTime.UtcNow;
-
-        var tx = new WalletTransaction
+        const int maxRetries = 3;
+        for (var attempt = 0; attempt < maxRetries; attempt++)
         {
-            Id = Guid.NewGuid(),
-            PlayerId = player.Id,
-            Type = WalletTransactionType.Bet,
-            Amount = -amount,
-            BalanceAfter = wallet.Balance,
-            ReferenceId = roundId,
-            GameId = gameId,
-            CreatedAt = DateTime.UtcNow
-        };
-        await _wallets.AddTransactionAsync(tx, ct);
-        await _wallets.SaveChangesAsync(ct);
+            var wallet = await _wallets.GetByPlayerIdAsync(player.Id, ct)
+                ?? throw new AppException("internal_error", "Casino wallet not found.", 500);
 
-        return new WalletOperationResponse
-        {
-            Success = true,
-            Balance = FormatAmount(wallet.Balance)
-        };
+            if (wallet.Balance < amount)
+                throw new AppException("insufficient_funds", "Insufficient casino wallet balance.", 402);
+
+            wallet.Balance -= amount;
+            wallet.Version++;
+            wallet.UpdatedAt = DateTime.UtcNow;
+
+            var tx = new WalletTransaction
+            {
+                Id = Guid.NewGuid(),
+                PlayerId = player.Id,
+                Type = WalletTransactionType.Bet,
+                Amount = -amount,
+                BalanceAfter = wallet.Balance,
+                ReferenceId = roundId,
+                GameId = gameId,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _wallets.AddTransactionAsync(tx, ct);
+
+            try
+            {
+                await _wallets.SaveChangesAsync(ct);
+                return new WalletOperationResponse
+                {
+                    Success = true,
+                    Balance = FormatAmount(wallet.Balance)
+                };
+            }
+            catch (DbUpdateConcurrencyException) when (attempt < maxRetries - 1)
+            {
+                await _wallets.ReloadWalletAsync(wallet, ct);
+            }
+        }
+
+        throw new AppException("conflict", "Wallet update conflict, please retry.", 409);
     }
 
     private async Task<WalletOperationResponse> CreditNormalAsync(
         Player player, decimal amount, string gameId, string roundId, CancellationToken ct)
     {
-        var wallet = await _wallets.GetByPlayerIdAsync(player.Id, ct)
-            ?? throw new AppException("internal_error", "Casino wallet not found.", 500);
-
-        wallet.Balance += amount;
-        wallet.UpdatedAt = DateTime.UtcNow;
-
-        var tx = new WalletTransaction
+        const int maxRetries = 3;
+        for (var attempt = 0; attempt < maxRetries; attempt++)
         {
-            Id = Guid.NewGuid(),
-            PlayerId = player.Id,
-            Type = WalletTransactionType.Win,
-            Amount = amount,
-            BalanceAfter = wallet.Balance,
-            ReferenceId = $"win:{roundId}",
-            GameId = gameId,
-            CreatedAt = DateTime.UtcNow
-        };
-        await _wallets.AddTransactionAsync(tx, ct);
-        await _wallets.SaveChangesAsync(ct);
+            var wallet = await _wallets.GetByPlayerIdAsync(player.Id, ct)
+                ?? throw new AppException("internal_error", "Casino wallet not found.", 500);
 
-        return new WalletOperationResponse
-        {
-            Success = true,
-            Balance = FormatAmount(wallet.Balance)
-        };
+            wallet.Balance += amount;
+            wallet.Version++;
+            wallet.UpdatedAt = DateTime.UtcNow;
+
+            var tx = new WalletTransaction
+            {
+                Id = Guid.NewGuid(),
+                PlayerId = player.Id,
+                Type = WalletTransactionType.Win,
+                Amount = amount,
+                BalanceAfter = wallet.Balance,
+                ReferenceId = $"win:{roundId}",
+                GameId = gameId,
+                CreatedAt = DateTime.UtcNow
+            };
+            await _wallets.AddTransactionAsync(tx, ct);
+
+            try
+            {
+                await _wallets.SaveChangesAsync(ct);
+                return new WalletOperationResponse
+                {
+                    Success = true,
+                    Balance = FormatAmount(wallet.Balance)
+                };
+            }
+            catch (DbUpdateConcurrencyException) when (attempt < maxRetries - 1)
+            {
+                await _wallets.ReloadWalletAsync(wallet, ct);
+            }
+        }
+
+        throw new AppException("conflict", "Wallet update conflict, please retry.", 409);
     }
 
     private async Task<WalletOperationResponse> RollbackNormalAsync(
@@ -267,29 +311,45 @@ public sealed class WalletService
         var existing = await _wallets.GetByReferenceAsync(player.Id, rollbackRef, ct);
         if (existing is not null)
         {
-            var wallet = await _wallets.GetByPlayerIdAsync(player.Id, ct)!;
-            return new WalletOperationResponse { Success = true, Balance = FormatAmount(wallet!.Balance) };
+            var wallet = await _wallets.GetByPlayerIdAsync(player.Id, ct)
+                ?? throw new AppException("internal_error", "Casino wallet not found.", 500);
+            return new WalletOperationResponse { Success = true, Balance = FormatAmount(wallet.Balance) };
         }
 
-        var w = await _wallets.GetByPlayerIdAsync(player.Id, ct)!;
-        var amount = Math.Abs(betTx.Amount);
-        w!.Balance += amount;
-        w.UpdatedAt = DateTime.UtcNow;
-
-        await _wallets.AddTransactionAsync(new WalletTransaction
+        const int maxRetries = 3;
+        for (var attempt = 0; attempt < maxRetries; attempt++)
         {
-            Id = Guid.NewGuid(),
-            PlayerId = player.Id,
-            Type = WalletTransactionType.Rollback,
-            Amount = amount,
-            BalanceAfter = w.Balance,
-            ReferenceId = rollbackRef,
-            GameId = gameId,
-            CreatedAt = DateTime.UtcNow
-        }, ct);
-        await _wallets.SaveChangesAsync(ct);
+            var w = await _wallets.GetByPlayerIdAsync(player.Id, ct)
+                ?? throw new AppException("internal_error", "Casino wallet not found.", 500);
+            var amount = Math.Abs(betTx.Amount);
+            w.Balance += amount;
+            w.Version++;
+            w.UpdatedAt = DateTime.UtcNow;
 
-        return new WalletOperationResponse { Success = true, Balance = FormatAmount(w.Balance) };
+            await _wallets.AddTransactionAsync(new WalletTransaction
+            {
+                Id = Guid.NewGuid(),
+                PlayerId = player.Id,
+                Type = WalletTransactionType.Rollback,
+                Amount = amount,
+                BalanceAfter = w.Balance,
+                ReferenceId = rollbackRef,
+                GameId = gameId,
+                CreatedAt = DateTime.UtcNow
+            }, ct);
+
+            try
+            {
+                await _wallets.SaveChangesAsync(ct);
+                return new WalletOperationResponse { Success = true, Balance = FormatAmount(w.Balance) };
+            }
+            catch (DbUpdateConcurrencyException) when (attempt < maxRetries - 1)
+            {
+                await _wallets.ReloadWalletAsync(w, ct);
+            }
+        }
+
+        throw new AppException("conflict", "Wallet update conflict, please retry.", 409);
     }
 
     private async Task<WalletOperationResponse> DebitSeamlessAsync(
@@ -360,8 +420,7 @@ public sealed class WalletService
             return wallet?.Balance ?? 0m;
         }
 
-        // Seamless: balance comes from operator; return last known from ledger or 0
-        var last = await _wallets.GetByReferenceAsync(player.Id, "balance-probe", ct);
+        var last = await _wallets.GetLatestTransactionAsync(player.Id, ct);
         return last?.BalanceAfter ?? 0m;
     }
 
